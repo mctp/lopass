@@ -63,12 +63,17 @@ def process_query(vcf1, vcf2, query=None):
     ## for each variant in vcf1 find the last block/variant in vcf2 which encloses it
     v2 = next(gen2)
     v2_next = next(gen2)
+    gvcf_end = False
     for v1 in gen1:
 
         ## find v2 which matches v1
-        while v1.start >= v2_next.start:
+        while not gvcf_end and (v1.start >= v2_next.start):
             v2 = v2_next
-            v2_next = next(gen2)
+            try:
+                v2_next = next(gen2)
+            except StopIteration:
+                v2_next = None
+                gvcf_end = True
         assert (v1.start>=v2.start & v1.start<=v2.end), "variant in panel did not overlap a variant/block in gVCF"
 
         ## get genotype likelihoods
