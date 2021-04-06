@@ -6,6 +6,13 @@ import argparse
 from collections import namedtuple
 
 GT2PL = {
+    (0,):0,
+    (1,):1,
+    (2,):2,
+    (3,):3,
+    (4,):4,
+    (5,):5,
+    (6,):6,
     (0,0):0,
     (0,1):1,
     (1,1):2,
@@ -33,8 +40,32 @@ GT2PL = {
     (3,6):24,
     (4,6):25,
     (5,6):26,
-    (6,6):27
+    (6,6):27,
 }
+
+GT2GT = {
+    (0,):0,
+    (1,):1,
+    (2,):1,
+    (3,):1,
+    (4,):1,
+    (5,):1,
+    (6,):1,
+    (0,0):(0,0),
+    (0,1):(0,1),
+    (1,1):(1,1),
+    (0,2):(0,1),
+    (2,2):(1,1),
+    (0,3):(0,1),
+    (3,3):(1,1),
+    (0,4):(0,1),
+    (4,4):(1,1),
+    (0,5):(0,1),
+    (5,5):(1,1),
+    (0,6):(0,1),
+    (6,6):(1,1),
+}
+
 VREC = namedtuple("Variant", ["CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT", "SAMPLE"])
 VCFREC = "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n"
 
@@ -47,14 +78,28 @@ def make_header(vcf1, vcf2):
     head_ln.extend([
         '##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">',
         '##FORMAT=<ID=PL,Number=G,Type=Integer,Description="Phred-scaled genotype likelihoods rounded to integer">',
-        '##INFO=<ID=VM,Number=1,Type=String,Description="GVCF variant match">'
+        '##INFO=<ID=GC,Number=1,Type=String,Description="Genotype call [ref,var,err]">'
     ])
     head_ln.append(head2_ln[-1])
     head = "\n".join(head_ln) + "\n"
     return head
     
-def process_query(vcf1, vcf2, query=None):
+def process_query(vcf1, vcf2, query=None, gt_missing0=False, pl_missing0=False):
 
+    if gt_missing0:
+        GT_MISSING_HAPLOID = "0"
+        GT_MISSING_DIPLOID = "0/0"
+    else:
+        GT_MISSING_HAPLOID = "."
+        GT_MISSING_DIPLOID = "./."
+
+    if pl_missing0:
+        PL_MISSING_HAPLOID = "0,0"
+        PL_MISSING_DIPLOID = "0,0,0"
+    else:
+        PL_MISSING_HAPLOID = "."
+        PL_MISSING_DIPLOID = "."
+    
     ## initialize parsers
     gen1 = vcf1(query)
     gen2 = vcf2(query)
@@ -76,52 +121,72 @@ def process_query(vcf1, vcf2, query=None):
                 gvcf_end = True
         assert (v1.start>=v2.start & v1.start<=v2.end), "variant in panel did not overlap a variant/block in gVCF"
 
+        ## missing
+        missing = False
         ## get genotype likelihoods
         pl = v2.format("PL")[0] # genotype likelihoods per allele
-        if v2.ALT==["<NON_REF>"]:
+        haploid = len(v2.genotypes[0]) == 2 # whether variant is haploid
+        if v2.ALT[0]=="<NON_REF>":
             # panel variant overlaps a sample reference block
-            GT = "0/0"
-            pl00 = pl[GT2PL[(0,0)]]
-            pl01 = pl[GT2PL[(0,1)]]
-            pl11 = pl[GT2PL[(1,1)]]
+            if haploid:
+                GT = "0"
+                PL = "%s,%s" % (pl[GT2PL[(0,)]], pl[GT2PL[(1,)]])
+            else:
+                GT = "0/0"
+                PL = "%s,%s,%s" % (pl[GT2PL[(0,0)]], pl[GT2PL[(0,1)]], pl[GT2PL[(1,1)]])
             match = "ref"
             qual = "."
         elif (v1.POS==v2.POS) and (v1.REF==v2.REF) and (v1.ALT[0] in v2.ALT):
             # panel variant overlaps a sample variant
             alt = v2.ALT.index(v1.ALT[0]) + 1 # index of the panel alternate allele
-            gt = tuple(v2.genotype.alleles(0)) # genotype of sample        
-            if (gt in ((0,0),(0,alt),(alt,alt))) and (gt in GT2PL):
-                # panel variant is called in sample against reference
-                # alt number <= GTPL keys (max 6)
-                GT = "%s/%s" % gt
-                pl00, pl01, pl11 = pl[GT2PL[(0,0)]], pl[GT2PL[(0,alt)]], pl[GT2PL[(alt,alt)]]
-                match = "var"
-                qual = "%.2f" % v2.QUAL
+            gt = tuple(v2.genotype.alleles(0)) # genotype of sample
+            if (gt in GT2PL):
+                if (gt in ((0,0),(0,alt),(alt,alt),(0,),(alt,))):
+                    # variant genotype has only ref and panel alt alleles
+                    if haploid:
+                        GT = "%s" % GT2GT[gt]
+                        PL = "%s,%s" % (pl[GT2PL[(0,)]], pl[GT2PL[(alt,)]])
+                    else:
+                        GT = "%s/%s" % GT2GT[gt]
+                        PL = "%s,%s,%s" % (pl[GT2PL[(0,0)]], pl[GT2PL[(0,alt)]], pl[GT2PL[(alt,alt)]])
+                    match = "var"
+                    qual = "%.2f" % v2.QUAL
+                else:
+                    # variant genotype includes non-panel alt alleles
+                    # - variant genotype has multiple non-reference alts (e.g. variant 1/2)
+                    # - variant genotype does not match panel alt (e.g. variant 0/1 panel 0/2)
+                    missing = True
             else:
-                # different alt favored or sample is heterozygous non-reference
-                GT = "0/0"
-                pl00, pl01, pl11 = 0, 0, 0
-                match = "err"
-                qual = "."
+                # variant does not match panel POS,REF,ALT
+                # - alt number > GT2PL keys (max 6)
+                missing = True
         else:
-            # overlapping variants but pos, ref,alt mismatch
-            GT = "0/0"
-            pl00, pl01, pl11 = 0, 0, 0
+            # overlapping variants but pos, ref, alt mismatch
+            missing = True
+
+        if missing:
+            if haploid:
+                GT = GT_MISSING_HAPLOID
+                PL = PL_MISSING_HAPLOID
+            else:
+                GT = GT_MISSING_DIPLOID
+                PL = PL_MISSING_DIPLOID
             match = "err"
             qual = "."
 
-        vrec = VREC(
+        vrec = VREC(x
             CHROM=v1.CHROM,
             POS=v1.POS,
-            ID=v1.ID,
+            ID=v1.ID if v1.ID else ".",
             REF=v1.REF,
             ALT=v1.ALT[0],
             QUAL=qual,
             FILTER=".",
-            INFO="VM=%s" % match,
+            INFO="GC=%s" % match,
             FORMAT="GT:PL",
-            SAMPLE="%s:%s,%s,%s" % (GT, pl00, pl01, pl11)
+            SAMPLE="%s:%s" % (GT, PL)
         )
+        
         yield vrec
 
 
@@ -130,6 +195,8 @@ if __name__ == "__main__":
     parser.add_argument("-o", '--out', help="output file")
     parser.add_argument("-H", '--no-header', help="suppress the header in VCF output")
     parser.add_argument("-r", '--regions', help="query regions in <chr>:<beg>-<end> format comma delimited")
+    parser.add_argument('--gt_missing0', dest='gt_missing0', action='store_true', help="Use 0 or 0/0 for missing GTs")
+    parser.add_argument('--pl_missing0', dest='pl_missing0', action='store_true', help="Use 0-array for missing PLs")
     parser.add_argument("panel", help="VCF file of sites in reference panel")
     parser.add_argument("gvcf", help="gVCF file of genotyped sample")
     args=parser.parse_args()
@@ -151,7 +218,7 @@ if __name__ == "__main__":
         fh.write(make_header(vcf1, vcf2))
 
     for query in queries:
-        recs = process_query(vcf1, vcf2, query)
+        recs = process_query(vcf1, vcf2, query, args.gt_missing0, args.pl_missing0)
         try:
             for rec in recs:
                 fh.write(VCFREC % rec)
