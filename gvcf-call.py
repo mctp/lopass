@@ -77,8 +77,8 @@ def make_header(vcf1, vcf2):
     head_ln.extend([l for l in head1_ln if l.startswith("##contig")])
     head_ln.extend([
         '##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">',
+        '##FORMAT=<ID=GC,Number=1,Type=String,Description="Genotype call [ref,var,pra,npa]">'
         '##FORMAT=<ID=PL,Number=G,Type=Integer,Description="Phred-scaled genotype likelihoods rounded to integer">',
-        '##INFO=<ID=GC,Number=1,Type=String,Description="Genotype call [ref,var,err]">'
     ])
     head_ln.append(head2_ln[-1])
     head = "\n".join(head_ln) + "\n"
@@ -140,29 +140,25 @@ def process_query(vcf1, vcf2, query=None, gt_missing0=False, pl_missing0=False):
             # panel variant overlaps a sample variant
             alt = v2.ALT.index(v1.ALT[0]) + 1 # index of the panel alternate allele
             gt = tuple(v2.genotype.alleles(0)) # genotype of sample
-            if (gt in GT2PL):
-                if (gt in ((0,0),(0,alt),(alt,alt),(0,),(alt,))):
-                    # variant genotype has only ref and panel alt alleles
-                    if haploid:
-                        GT = "%s" % GT2GT[gt]
-                        PL = "%s,%s" % (pl[GT2PL[(0,)]], pl[GT2PL[(alt,)]])
-                    else:
-                        GT = "%s/%s" % GT2GT[gt]
-                        PL = "%s,%s,%s" % (pl[GT2PL[(0,0)]], pl[GT2PL[(0,alt)]], pl[GT2PL[(alt,alt)]])
-                    match = "var"
-                    qual = "%.2f" % v2.QUAL
+            if (gt in GT2GT):
+                # variant genotype has only ref and panel alt alleles
+                if haploid:
+                    GT = "%s" % GT2GT[gt]
+                    PL = "%s,%s" % (pl[GT2PL[(0,)]], pl[GT2PL[(alt,)]])
                 else:
-                    # variant genotype includes non-panel alt alleles
-                    # - variant genotype has multiple non-reference alts (e.g. variant 1/2)
-                    # - variant genotype does not match panel alt (e.g. variant 0/1 panel 0/2)
-                    missing = True
+                    GT = "%s/%s" % GT2GT[gt]
+                    PL = "%s,%s,%s" % (pl[GT2PL[(0,0)]], pl[GT2PL[(0,alt)]], pl[GT2PL[(alt,alt)]])
+                match = "var"
+                qual = "%.2f" % v2.QUAL
             else:
-                # variant does not match panel POS,REF,ALT
-                # - alt number > GT2PL keys (max 6)
-                missing = True
+                # variant genotype includes non-panel alt alleles
+                # variant genotype has multiple non-reference alts (e.g. variant 1/2)
+                # variant genotype does not match panel alt (e.g. variant 0/1 panel 0/2)
+                # alt number > GT2PL keys (max 6)
+                missing = 'npa'
         else:
             # overlapping variants but pos, ref, alt mismatch
-            missing = True
+            missing = 'pra'
 
         if missing:
             if haploid:
@@ -171,10 +167,10 @@ def process_query(vcf1, vcf2, query=None, gt_missing0=False, pl_missing0=False):
             else:
                 GT = GT_MISSING_DIPLOID
                 PL = PL_MISSING_DIPLOID
-            match = "err"
+            match = missing
             qual = "."
 
-        vrec = VREC(x
+        vrec = VREC(
             CHROM=v1.CHROM,
             POS=v1.POS,
             ID=v1.ID if v1.ID else ".",
@@ -182,9 +178,9 @@ def process_query(vcf1, vcf2, query=None, gt_missing0=False, pl_missing0=False):
             ALT=v1.ALT[0],
             QUAL=qual,
             FILTER=".",
-            INFO="GC=%s" % match,
-            FORMAT="GT:PL",
-            SAMPLE="%s:%s" % (GT, PL)
+            INFO=".",
+            FORMAT="GT:GC:PL",
+            SAMPLE="%s:%s:%s" % (GT, match, PL)
         )
         
         yield vrec
