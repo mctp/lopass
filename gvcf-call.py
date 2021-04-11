@@ -77,7 +77,7 @@ def make_header(vcf1, vcf2):
     head_ln.extend([l for l in head1_ln if l.startswith("##contig")])
     head_ln.extend([
         '##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">',
-        '##FORMAT=<ID=GC,Number=1,Type=String,Description="Genotype call [ref,var,pra,npa]">'
+        '##FORMAT=<ID=GC,Number=1,Type=String,Description="Genotype call {ref,var,pra,npa}">',
         '##FORMAT=<ID=PL,Number=G,Type=Integer,Description="Phred-scaled genotype likelihoods rounded to integer">',
     ])
     head_ln.append(head2_ln[-1])
