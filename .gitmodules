@@ -1,0 +1,3 @@
+[submodule "GLIMPSE"]
+	path = GLIMPSE
+	url = https://github.com/odelaneau/GLIMPSE
