@@ -77,7 +77,7 @@ def make_header(vcf1, vcf2):
     head_ln.extend([l for l in head1_ln if l.startswith("##contig")])
     head_ln.extend([
         '##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">',
-        '##FORMAT=<ID=GC,Number=1,Type=String,Description="Genotype call {ref,var,pra,npa}">',
+        '##FORMAT=<ID=GC,Number=1,Type=String,Description="Genotype call {ref,err,var,pra,npa}">',
         '##FORMAT=<ID=PL,Number=G,Type=Integer,Description="Phred-scaled genotype likelihoods rounded to integer">',
     ])
     head_ln.append(head2_ln[-1])
@@ -140,16 +140,31 @@ def process_query(vcf1, vcf2, query=None, gt_missing0=False, pl_missing0=False):
             # panel variant overlaps a sample variant
             alt = v2.ALT.index(v1.ALT[0]) + 1 # index of the panel alternate allele
             gt = tuple(v2.genotype.alleles(0)) # genotype of sample
-            if (gt in GT2GT):
+            ad = v2.format("AD")[0] # allele depths
+            if (gt in ((0,0),(0,alt),(alt,alt),(0,),(alt,)) and gt in GT2GT):
                 # variant genotype has only ref and panel alt alleles
-                if haploid:
-                    GT = "%s" % GT2GT[gt]
-                    PL = "%s,%s" % (pl[GT2PL[(0,)]], pl[GT2PL[(alt,)]])
+                gt_ = GT2GT[gt]
+                if not ((0 in gt_ and ad[0]==0) or (1 in gt_ and ad[alt]==0)):
+                    # variant genotype matches ADs
+                    if haploid:
+                        pl0 = pl[GT2PL[(0,)]]
+                        pl1 = pl[GT2PL[(alt,)]]
+                        GT = "%s" % gt_
+                        PL = "%s,%s" % (pl0, pl1)
+                    else:
+                        pl00 = pl[GT2PL[(0,0)]]
+                        pl01 = pl[GT2PL[(0,1)]]
+                        pl11 = pl[GT2PL[(1,1)]]
+                        if 0 in gt_:
+                            pl11 = min(pl11, 256)
+                        if 1 in gt_:
+                            pl00 = min(pl00, 256)
+                        GT = "%s/%s" % gt_
+                        PL = "%s,%s,%s" % (pl00, pl01, pl11)
+                    match = "var"
+                    qual = "%.2f" % v2.QUAL
                 else:
-                    GT = "%s/%s" % GT2GT[gt]
-                    PL = "%s,%s,%s" % (pl[GT2PL[(0,0)]], pl[GT2PL[(0,alt)]], pl[GT2PL[(alt,alt)]])
-                match = "var"
-                qual = "%.2f" % v2.QUAL
+                    missing = 'err'
             else:
                 # variant genotype includes non-panel alt alleles
                 # variant genotype has multiple non-reference alts (e.g. variant 1/2)
