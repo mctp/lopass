@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import os
 import sys
+import math
 import cyvcf2
 import argparse
 from collections import namedtuple
@@ -84,7 +85,7 @@ def make_header(vcf1, vcf2):
     head = "\n".join(head_ln) + "\n"
     return head
     
-def process_query(vcf1, vcf2, query=None, gt_missing0=False, pl_missing0=False):
+def process_query(vcf1, vcf2, query=None, gt_missing0=False, pl_missing0=False, pl_max=math.inf):
 
     if gt_missing0:
         GT_MISSING_HAPLOID = "0"
@@ -155,10 +156,6 @@ def process_query(vcf1, vcf2, query=None, gt_missing0=False, pl_missing0=False):
                         pl00 = pl[GT2PL[(0,0)]]
                         pl01 = pl[GT2PL[(0,1)]]
                         pl11 = pl[GT2PL[(1,1)]]
-                        if 0 in gt_:
-                            pl11 = min(pl11, 256)
-                        if 1 in gt_:
-                            pl00 = min(pl00, 256)
                         GT = "%s/%s" % gt_
                         PL = "%s,%s,%s" % (pl00, pl01, pl11)
                     match = "var"
