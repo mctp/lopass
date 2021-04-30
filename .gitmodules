@@ -4,6 +4,3 @@
 [submodule "htslib"]
 	path = htslib
 	url = https://github.com/samtools/htslib
-[submodule "boost"]
-	path = boost
-	url = https://github.com/boostorg/boost
