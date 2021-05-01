@@ -33,4 +33,5 @@ done
 ## building glimpse
 cd $LOPASS_DIR/GLIMPSE
 make -j4
-
+mkdir -p $LOPASS_DIR/bin
+mv $LOPASS_DIR/GLIMPSE/*/bin/* $LOPASS_DIR/bin

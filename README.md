@@ -2,11 +2,11 @@
 
 Pipeline for low-coverage genotyping, imputation, phasing.
 
-Step 1: gVCF Variant Calling (GATK4)
+*Step 1*: gVCF Variant Calling (GATK4)
 
 lopass-gatk.py A gVCF file is created calling variation within a BAM file. 
 
-Step 2: Extraction of genotype likelihoods (PLs) for panel variants
+*Step 2*: Extraction of genotype likelihoods (PLs) for panel variants
 
 lopass-genotype.py A VCF file is created with PLs for all variants in a reference panel.
 
@@ -14,7 +14,7 @@ Given a reference panel (normalized indels, multi-allelics decomposed) and a sin
 genotypes the positions in the reference panel given the evidence in the gVCF file. The gVCF file should
 not be decomposed.
 
-Step 3: Imputation and Phasing
+*Step 3*: Imputation and Phasing
 
 lopass-glimpse.py Imputation and phasing is performed on the resulting VCF file.
 
@@ -35,7 +35,13 @@ Lopass requires a Linux system with configured to compile `htslib` and `boost`, 
 
 1. Install conda
 2. Execute `build.sh` script, this will compile `GLIMPSE`
-3. Execute `setup-conda.sh` or install `cyvcf2` and `GATK4` manually
+3. Execute `setup-conda.sh` this will create a `lopass` environment. Alternatively,  install `Python3`, `cyvcf2` and `GATK4` manually.
+
+Before running lopass setup paths and activate the conda environment:
+
+```
+source env.sh
+```
 
 ## Details
 
