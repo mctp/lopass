@@ -1,3 +1,5 @@
 boost
 htslib
 bin
+data/*/maps
+data/*/chunks
