@@ -7,6 +7,7 @@ mkdir -p $LOPASS_DIR/boost
 cd $LOPASS_DIR
 wget https://github.com/samtools/htslib/releases/download/1.12/htslib-1.12.tar.bz2
 tar -xf htslib-1.12.tar.bz2
+rm htslib-1.12.tar.bz2
 mv htslib-1.12 htslib
 cd htslib
 make -j4
@@ -29,6 +30,7 @@ for i in */makefile; do
     sed -i.bkp 's,'"/usr/local/lib/"','"$BOOST_LIB"',g' $i
 done
 
-# building glimpse
+## building glimpse
 cd $LOPASS_DIR/GLIMPSE
 make -j4
+
