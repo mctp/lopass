@@ -53,7 +53,7 @@ def glimpse(chrom, maps, chunks, args):
             outs_.append(out_)
 
         # ligate
-        lig_ = args.output + "-" + chrom + "-" + "ligated.bcf"
+        imp_ = args.output + "-" + chrom + "-" + "imputed.bcf"
         phs_ = args.output + "-" + chrom + "-" + "phased.bcf"
 
         with tempfile.NamedTemporaryFile(mode="w") as temp:
@@ -61,13 +61,13 @@ def glimpse(chrom, maps, chunks, args):
             temp.flush()
             cmd = ["GLIMPSE_ligate",
                    "--input", temp.name,
-                   "--output", lig_,
+                   "--output", imp_,
                    "--thread", str(args.glimpse_thread),
                    ]
             subprocess.run(cmd, stdout=subprocess.DEVNULL)
 
         cmd = ["GLIMPSE_sample",
-               "--input", lig_,
+               "--input", imp_,
                "--output", phs_,
                "--solve",
                "--thread", str(args.glimpse_thread),
@@ -79,7 +79,7 @@ def glimpse(chrom, maps, chunks, args):
                 os.remove(fn)
                 os.remove(fn + ".csi")
                 
-        return (chrom, (lig_, phs_))
+        return (chrom, (imp_, phs_))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -119,25 +119,25 @@ if __name__ == "__main__":
     chunks = dict([(fn.split(".")[0], os.path.join(args.chunks, fn)) for fn in chunk_fns if fn.endswith(".txt")])
 
     ## run GLIMPSE
-    ligd = {}
+    impd = {}
     phsd = {}
     with multiprocessing.Pool(args.thread) as pool:
         chrom_lp = pool.map(functools.partial(glimpse, maps=maps, chunks=chunks, args=args), chroms, chunksize=1)
         for chrom, (l, p) in chrom_lp:
-            ligd[chrom] = l
+            impd[chrom] = l
             phsd[chrom] = p
-    ligl = [ligd[chrom] for chrom in ALL_CHR if chrom in ligd]
-    phsd = [phsd[chrom] for chrom in ALL_CHR if chrom in phsd]
-    cmd = ["bcftools", "concat", "-o", args.output + "-imputed.bcf", "-Ob"] + ligl
+    impl = [impd[chrom] for chrom in ALL_CHR if chrom in impd]
+    phsl = [phsd[chrom] for chrom in ALL_CHR if chrom in phsd]
+    cmd = ["bcftools", "concat", "-o", args.output + "-imputed.bcf", "-Ob"] + impl
     subprocess.run(cmd, subprocess.DEVNULL)
     cmd = ["bcftools", "index", "-f", args.output + "-imputed.bcf"]
     subprocess.run(cmd, subprocess.DEVNULL)
-    cmd = ["bcftools", "concat", "-o", args.output + "-phased.bcf", "-Ob"] + phsd
+    cmd = ["bcftools", "concat", "-o", args.output + "-phased.bcf", "-Ob"] + phsl
     subprocess.run(cmd, subprocess.DEVNULL)
     cmd = ["bcftools", "index", "-f", args.output + "-phased.bcf"]
     subprocess.run(cmd, subprocess.DEVNULL)
     
     if args.delete:
-        for fn in ligl+phsd:
+        for fn in impl+phsl:
             os.remove(fn)
             os.remove(fn + ".csi")
