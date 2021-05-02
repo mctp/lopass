@@ -66,6 +66,7 @@ Panel variants are annotated with genotype calls (GT) and likelihoods (PL) from 
 - they match on POS and REF
 - The panel ALT is the most-likely ALT in the sample variant
 - The sample genotype is homozygous reference, heterozygous, or homozygous alternative for the panel ALT
+
 In all other cases, the site is returned as unobserved.
 
 ### Sex chromosomes
