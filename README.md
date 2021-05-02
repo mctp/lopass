@@ -1,12 +1,12 @@
-1;5202;0c11;rgb:2323/2727/292911;rgb:2323/2727/2929# lopass
+# lopass
 
 Pipeline for low-coverage genotyping, imputation, phasing.
 
-*Step 1*: gVCF Variant Calling (GATK4)
+**Step 1**: gVCF Variant Calling (GATK4)
 
 lopass-gatk.py A gVCF file is created calling variation within a BAM file. 
 
-*Step 2*: Extraction of genotype likelihoods (PLs) for panel variants
+**Step 2**: Extraction of genotype likelihoods (PLs) for panel variants
 
 lopass-genotype.py A VCF file is created with PLs for all variants in a reference panel.
 
@@ -14,7 +14,7 @@ Given a reference panel (normalized indels, multi-allelics decomposed) and a sin
 genotypes the positions in the reference panel given the evidence in the gVCF file. The gVCF file should
 not be decomposed.
 
-*Step 3*: Imputation and Phasing
+**Step 3**: Imputation and Phasing
 
 lopass-glimpse.py Imputation and phasing is performed on the resulting VCF file.
 
@@ -77,18 +77,18 @@ Chromosome Y is not supported.
 
 ### Example
 
-Step 1:
+**Step 1:**
 ```
 ./lopass-gatk.py -t1 -p4 -L chr22:1-18709565:2:2 -R grch38_full_analysis_set_plus_decoy_hla.fa --sex XX -i data/chr22-tiny/NA12878-10M-chr22-tiny.bam -o data/chr22-tiny/NA12878-10M-chr22-tiny
 ```
 
-Step 2:
+**Step 2:**
 ```
 ./lopass-genotype.py data/chr22-tiny/kg-hg38-nygc2020-chr22-tiny-sites.bcf data/chr22-tiny/NA12878-10M-chr22-tiny.vcf.gz -r chr22:1-18709565 | bcftools view -Oz -o data/chr22-tiny/NA12878-10M-chr22-tiny-call.vcf.gz
 tabix data/chr22-tiny/NA12878-10M-chr22-tiny-call.vcf.gz
 ```
 
-Step 3:
+**Step 3:**
 ```
 ./lopass-glimpse.py -c data/chr22-tiny/chunks -m data/chr22-tiny/maps data/chr22-tiny/kg-hg38-nygc2020-chr22-tiny-genotypes-noNA12878.bcf  data/chr22-tiny/NA12878-10M-chr22-tiny-call.vcf.gz -o data/chr22-tiny/NA12878-10M-chr22-tiny-glimpse -r chr22 -d
 ```
