@@ -83,11 +83,11 @@ Step 1:
 
 Step 2:
 ```
-./lopass-genotype.py data/chr22-tiny/chr22-tiny-sites.bcf data/chr22-tiny/NA12878-10M-chr22-tiny.vcf.gz -r chr22:1-18709565 | bcftools view -Oz -o data/chr22-tiny/NA12878-10M-chr22-tiny-call.vcf.gz
+./lopass-genotype.py data/chr22-tiny/kg-hg38-nygc2020-chr22-tiny-sites.bcf data/chr22-tiny/NA12878-10M-chr22-tiny.vcf.gz -r chr22:1-18709565 | bcftools view -Oz -o data/chr22-tiny/NA12878-10M-chr22-tiny-call.vcf.gz
 tabix data/chr22-tiny/NA12878-10M-chr22-tiny-call.vcf.gz
 ```
 
 Step 3:
 ```
-./lopass-glimpse.py -c data/chr22-tiny/chunks -m data/chr22-tiny/maps data/chr22-tiny/chr22-tiny-genotypes-noNA12878.bcf  data/chr22-tiny/NA12878-10M-chr22-tiny-call.vcf.gz -o data/chr22-tiny/NA12878-10M-chr22-tiny-glimpse -r chr22
+./lopass-glimpse.py -c data/chr22-tiny/chunks -m data/chr22-tiny/maps data/chr22-tiny/kg-hg38-nygc2020-chr22-tiny-genotypes-noNA12878.bcf  data/chr22-tiny/NA12878-10M-chr22-tiny-call.vcf.gz -o data/chr22-tiny/NA12878-10M-chr22-tiny-glimpse -r chr22 -d
 ```
