@@ -24,7 +24,6 @@ def write_ploidy(fh, args):
 
 def glimpse(chrom, maps, chunks, args):
     ## run GLIMPSE on each chromosome
-    print(chrom)
     map_ = maps[chrom]
     chunks_ = chunks[chrom]
     with open(chunks_, "r") as fh:
@@ -85,8 +84,8 @@ def glimpse(chrom, maps, chunks, args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     ## main
-    parser.add_argument("panel", help="VCF file returned by gvcf-call")
-    parser.add_argument("vcf", help="VCF file returned by gvcf-call")
+    parser.add_argument("panel", help="Reference panel")
+    parser.add_argument("vcf", help="VCF file returned by lopass-genotype")
     ## required
     parser.add_argument("-o", '--output', help="Output prefix", required=True)
     parser.add_argument("-c", '--chunks', help="GLIMPSE chunks directory", required=True)

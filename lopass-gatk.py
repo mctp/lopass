@@ -59,6 +59,7 @@ GATHER_CMD = [
 
 def run(cmd):
     out = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+    print(out)
     return(out)
 
 if __name__ == "__main__":
@@ -135,7 +136,7 @@ if __name__ == "__main__":
         vcfs.append(vcf)
 
     ## Run GATK4 in parallel
-    with multiprocessing.Pool(processes=args.processes) as pool:
+    with multiprocessing.Pool(processes=int(args.processes)) as pool:
         for _ in pool.imap_unordered(run, cmds, chunksize=1):
             pass
 

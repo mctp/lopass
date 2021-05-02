@@ -223,7 +223,7 @@ if __name__ == "__main__":
         queries = vcf1.seqnames
 
     if args.out:
-        fh = open(args.out, 'wb')
+        fh = open(args.out, 'w')
     else:
         fh = sys.stdout
 
