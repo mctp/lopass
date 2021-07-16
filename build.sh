@@ -14,7 +14,7 @@ make -j4
 
 ## build boost
 cd $LOPASS_DIR/boost
-wget https://dl.bintray.com/boostorg/release/1.73.0/source/boost_1_73_0.tar.bz2
+wget https://boostorg.jfrog.io/artifactory/main/release/1.73.0/source/boost_1_73_0.tar.bz2
 tar --bzip2 -xf boost_1_73_0.tar.bz2
 rm boost_1_73_0.tar.bz2
 mv boost_1_73_0 src
