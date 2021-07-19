@@ -121,7 +121,7 @@ if __name__ == "__main__":
     ## run GLIMPSE
     impd = {}
     phsd = {}
-    with multiprocessing.Pool(args.thread) as pool:
+    with multiprocessing.Pool(int(args.thread)) as pool:
         chrom_lp = pool.map(functools.partial(glimpse, maps=maps, chunks=chunks, args=args), chroms, chunksize=1)
         for chrom, (l, p) in chrom_lp:
             impd[chrom] = l
