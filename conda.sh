@@ -6,4 +6,4 @@ LOPASS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 # eval "$__conda_setup"
 conda config --add channels bioconda
 conda config --add channels conda-forge
-sudo conda env create -n lopass --file conda-lopass.yml
+sudo conda env create -n lopass --file $LOPASS_DIR/conda-lopass.yml
