@@ -25,10 +25,16 @@ cd src
 ## patching glimpse
 cd $LOPASS_DIR/GLIMPSE
 BOOST_LIB=$LOPASS_DIR/boost/build/lib/
+BOOST_INC=$LOPASS_DIR/boost/build/include
 for i in */makefile; do
-    echo "patching: " $i
-    sed -i.bkp 's,'"/usr/local/lib/"','"$BOOST_LIB"',g' $i
+    echo "patching1: " $i
+    sed -i.bkp1 's,'"/usr/local/lib/"','"$BOOST_LIB"',g' $i
 done
+for i in */makefile; do
+    echo "patching2: " $i
+    sed -i.bkp2 's,'"/usr/include"','"$BOOST_INC"',g' $i
+done
+
 
 ## building glimpse
 cd $LOPASS_DIR/GLIMPSE
