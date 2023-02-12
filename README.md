@@ -34,8 +34,9 @@ Lopass requires a Linux system with configured to compile `htslib` and `boost`, 
 ### Building
 
 1. Install conda
-2. Execute `build.sh` script, this will compile `GLIMPSE`
-3. Execute `setup-conda.sh` this will create a `lopass` environment. Alternatively,  install `Python3`, `cyvcf2` and `GATK4` manually.
+2. clone this github repository (recursively to get the correct GLIMPSE version) `git clone https://github.com/mctp/lopass --recursive`
+3. Execute `build.sh` script, this will compile `GLIMPSE`
+4. Execute `setup-conda.sh` this will create a `lopass` environment. Alternatively,  install `Python3`, `cyvcf2` and `GATK4` manually.
 
 ### Running
 
