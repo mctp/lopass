@@ -90,6 +90,7 @@ tabix data/chr22-tiny/NA12878-10M-chr22-tiny-call.vcf.gz
 ```
 
 **Step 3:**
+Make sure to run the above preping step of generating maps and chunked panels prior to this step. 
 ```
 ./lopass-glimpse.py -c data/chr22-tiny/chunks -m data/chr22-tiny/maps data/chr22-tiny/kg-hg38-nygc2020-chr22-tiny-genotypes-noNA12878.bcf  data/chr22-tiny/NA12878-10M-chr22-tiny-call.vcf.gz -o data/chr22-tiny/NA12878-10M-chr22-tiny-glimpse -r chr22 -d
 ```
