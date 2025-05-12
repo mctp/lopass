@@ -34,8 +34,9 @@ Lopass requires a Linux system with configured to compile `htslib` and `boost`, 
 ### Building
 
 1. Install conda
-2. Execute `build.sh` script, this will compile `GLIMPSE`
-3. Execute `setup-conda.sh` this will create a `lopass` environment. Alternatively,  install `Python3`, `cyvcf2` and `GATK4` manually.
+2. clone this github repository (recursively to get the correct GLIMPSE version) `git clone https://github.com/mctp/lopass --recursive`
+3. Execute `build.sh` script, this will compile `GLIMPSE`
+4. Execute `setup-conda.sh` this will create a `lopass` environment. Alternatively,  install `Python3`, `cyvcf2` and `GATK4` manually.
 
 ### Running
 
@@ -89,6 +90,7 @@ tabix data/chr22-tiny/NA12878-10M-chr22-tiny-call.vcf.gz
 ```
 
 **Step 3:**
+Make sure to run the above preping step of generating maps and chunked panels prior to this step. 
 ```
 ./lopass-glimpse.py -c data/chr22-tiny/chunks -m data/chr22-tiny/maps data/chr22-tiny/kg-hg38-nygc2020-chr22-tiny-genotypes-noNA12878.bcf  data/chr22-tiny/NA12878-10M-chr22-tiny-call.vcf.gz -o data/chr22-tiny/NA12878-10M-chr22-tiny-glimpse -r chr22 -d
 ```
